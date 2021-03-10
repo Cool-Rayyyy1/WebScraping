@@ -1,40 +1,18 @@
-# sp21-cs242-assignment2.0
-Due date: :crescent_moon: 23:59 CDT March 2, 2021 :clock12: 
-### Part 0: Reading
+# sp21-cs242-assignment2.1
+Due date: :crescent_moon: 23:59 CDT March 8, 2021 :clock12: <br>
+I did a tooth surgery, so I got two days extension
+### Part I: Query Parse and Execution
 :round_pushpin:<br>
-Before you begin web scraping, make sure to read the following links:
-* https://www.scrapehero.com/how-to-prevent-getting-blacklisted-while-scraping/
-* https://www.promptcloud.com/blog/dont-get-blacklisted-legitimate-web-scraping-process
-* https://www.promptcloud.com/blog/some-traps-to-avoid-in-web-scraping/
-### Part I: Web Scraping
-:round_pushpin:<br>
-* Gather information of Authors and Books from Goodreads.
-  * You should gather information from a large number of book pages (>200) and authors pages (>50) Essentially saying you need to contain at least information of at least 200 books and 50 authors. You should not go beyond 2000 books or authors. 
-  * The starting page must be a book page. The starting page should be a variable and should not be hard-coded. (For example, starting from clean code: https://www.goodreads.com/book/show/3735293-clean-code). The order of traversal doesn't matter: for example, you can find next books to scrape by visiting all books that the same authors have written, or you can just use similar books listed in the GoodReads website.
-* Report progress and exceptions (e.g., books without ISBN). There is no limit as to how this should be implemented.
-* Represent Books and Authors efficiently. There is no one structure for this assignment, and there are no type constraints for fields.
-### Part2 Data Storage in an External Database
-:round_pushpin:<br>
-In the third part of this assignment, we will be using the same scraper you build in part one and store data into a database. We do not have a constraint in the type of database you are using, Here are some suggestions:
-* mongoDB (including mongoDB Altas) + PyMongo
-* firebase
-* SQLite
-* MySQL
+To support complex operations in addition to simple look up for books and authors, a query Domain-Specific Language is needed. For the purpose of this assignment, we will be implementing a simplified version of Elasticsearch's query language. You can find the full specification here. Generally, to make an interpreter of a language, you will need to scan user inputs, parse expressions into trees (for nested operations), and execute expressions and statements. You can find a more hands-on and detailed tutorial here. For this assignment, since this language is very simple, you can use regular expressions to replace part of the parsing stage, and you are not required to consider operators that allow nesting. Consult official Python doc on regular expression here.<br>
+Note that this is not a full-fledged programming language, nor we do not expect you to create a full-fledged interpreter for this language, but you should still take note of aforementioned flow for the sake of extensibility and versatility of your interpreter. Only required behaviors of required operators of this language are listed, and feel free to make any assumptions for other parts, but you must discuss them during your discussion and document them in your code and README file.<br>
 
-### Part3 Command Line Interface
+### Part2 API Creation
 :round_pushpin:<br>
-To make the scrapers more versatile, we can write a simple command line interface that allows other users to configure behaviors of the program. In this assignment, you are only required to take user inputs through command line arguments (however, you will need to make the program interactive by next assignment). Python for instance now has several built-in/external packages to assist this process (for example, the argparse library). It can handle and complete simple preprocessing of the arguments a user provided to the system.
-Your program should be able to:
-* Accept any valid starting URL
-  * Check if the URL is valid, if it points to GoodReads, if it potentially represents a book
-* Accept an arbitrary number of books and authors to scrape
-  * Print warning for numbers greater than 200 books and 50 authors
-* Read from JSON files to create new books / authors or update existing books / authors  
-  * Print error for invalid JSON file (e.g., syntax error) and malformed data structure (e.g., what if the JSON is an array, or if the object doesn't have id). Discuss your design choice during discussions
-  * Print what new entries are updated or created
-* Export existing books / authors into JSON files
-  * The output must be valid JSON
+APIs are used in many real-world applications and are common in software development, web development, personal projects, hackathon, and many other places. In this assignment, we are asking you to write a web API. In addition to making your data accessible, this will help give you a better understanding of how web structuring works.<br>
+Your API should include the following endpoints: GET, PUT, POST and DELETE (CRUD). Best practices and resources to design APIs are listed in this blog post. Please read through this to get a sense of how to set up good API parameters and mechanisms. We likely will not utilize all but this is a solid resource. Your response should be formatted in JSON. You can use CURL or postman to demonstrate that your API is working. Note that for Put and Post, new information should be stored in HTTP request body as JSON, and for all requests, id is passed as query parameters in the URL itself. Check out this answer for the differences between them.<br>
+In addition to returning HTTP status codes, in this assignment you should also return corresponding error messages detailing what happened. You should incorporate this in your api design, and think about how to structure your response so that other developers can understand when data is returned and when errors occurred. For example, you can use the same JSON object that contain both data and error entries, and if you choose this approach you can take inspiration from GraphQL's query response here. Alternatively you can use different JSON objects, and the client can figure out which object is returned via HTTP status codes. You can checkout this article on how error objects can be structured.<br>
 
-### Part IV: Miscellaneous Requirements    
+
+### Part3 Command Line Application Extension
 :round_pushpin:<br>
-As usual, we require that you write extensive unit tests for each part of this assignment. We understand that it can be difficult to test for web scraping. However, make sure to exhaustively test all other parts of your code. If your language does not have a testing framework (unlikely), you will need to implement your own test runner and utilities to accomplish this part of the assignment. In order to test your web scraper, your moderator will ask you to scrape a book page of their choice in section, so be prepared. You should also be demoing your data storage.
+Extend the command line application you worked on last week by including the functionality specified in the GET, PUT, POST, and DELETE endpoints. In other words, you should design a command line interface that supports getting book / author information, performing searches, updating and creating books / authors, scraping new books / authors, and deleting book / author. Tree-like menus are recommended for interactivity, but command line arguments are acceptable too (in the latter case, you must design your command line arguments carefully). Note that there will be heavy penalty if you fail to reuse most of the code from previous parts.

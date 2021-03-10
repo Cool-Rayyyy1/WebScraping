@@ -95,5 +95,5 @@ class jsonParser:
 
 if __name__ == '__main__':
     parser = jsonParser();
-    parser.writeBookData();
+    parser.exportAuthorData()
     parser.commitChange()

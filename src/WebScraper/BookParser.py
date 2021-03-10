@@ -32,7 +32,7 @@ class Book:
         try:
             return str(self.soup.find("span", itemprop="isbn").text)
         except:
-            print("Can not scrape book title")
+            print("Can not scrape book ISBN")
             return None
 
     def getAuthorUrl(self):

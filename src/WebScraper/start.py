@@ -67,18 +67,21 @@ def startWebScraping(currentUrl):
     bookName = currentBook.getTitle()
     print("start scraping " + bookName + " !")
     addName(bookName)
-    bookId = currentBook.getBookId()
-    bookISBN = currentBook.getISBN()
+    bookId = currentBook.getBookId().replace(' ', '')
+    bookISBN = currentBook.getISBN().replace(' ', '')
     authorUrl = currentBook.getAuthorUrl()
     authorName = currentBook.getAuthor()
-    bookRating = currentBook.getRating()
-    bookRatingCount = currentBook.getRatingCount()
-    bookReviewCount = currentBook.getReviewCount()
+    bookRating = currentBook.getRating().replace(' ', '')
+    bookRating = bookRating.replace("\n", '')
+    bookRatingCount = currentBook.getRatingCount().replace(' ', '')
+    bookRatingCount = bookRatingCount.replace("\n", '')
+    bookReviewCount = currentBook.getReviewCount().replace(' ', '')
+    bookReviewCount = bookReviewCount.replace("\n", '')
     bookImageUrl = currentBook.getBookImageUrl()
     similarBook, similarUrl = currentBook.getSimilarBooks()
     jsonOfSimilar = json.dumps(similarBook)
     current.execute('''INSERT INTO Book VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)''', (
-    bookUrl, bookName, bookId, bookISBN, authorUrl, authorName, bookRating, bookRatingCount, bookReviewCount,
+    bookId, bookUrl, bookName, bookISBN, authorUrl, authorName, bookRating, bookRatingCount, bookReviewCount,
     bookImageUrl, jsonOfSimilar))
     bookIncrement()
 
@@ -86,17 +89,20 @@ def startWebScraping(currentUrl):
     if countAuthor < targetAuthor:
         authorName = currentAuthor.getName()
         print("start scraping " + authorName + " !")
-        authorId = currentAuthor.getAuthorId()
-        authorRating = currentAuthor.getRating()
-        authorRatingCount = currentAuthor.getRatingCount()
-        authorReviewCount = currentAuthor.getReviewCount()
+        authorId = currentAuthor.getAuthorId().replace(' ', '')
+        authorRating = currentAuthor.getRating().replace(' ', '')
+        authorRating = authorRating.replace("\n", '')
+        authorRatingCount = currentAuthor.getRatingCount().replace(' ', '')
+        authorRatingCount = authorRatingCount.replace("\n", '')
+        authorReviewCount = currentAuthor.getReviewCount().replace(' ', '')
+        authorReviewCount = authorReviewCount.replace("\n", '')
         authorImageUrl = currentAuthor.getImageUrl()
         listOfRelated = currentAuthor.getRelatedAuthors()
         jsonOfRelated = json.dumps(listOfRelated)
         listOfAuthorBooks = currentAuthor.getAuthorsBooks()
         jsonOfAuthorBooks = json.dumps(listOfAuthorBooks)
         current.execute('''INSERT INTO Author VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)''', (
-        authorName, authorUrl, authorId, authorRating, authorRatingCount, authorReviewCount, authorImageUrl,
+        authorId, authorName, authorUrl, authorRating, authorRatingCount, authorReviewCount, authorImageUrl,
         jsonOfRelated, jsonOfAuthorBooks))
         authorIncrement()
 
@@ -124,7 +130,7 @@ def startScraping():
         while 1 > 0:
             print("Please enter the number of books you want to scrape!")
             numOfBook = input('>')
-            if int(numOfBook) <= 30:
+            if int(numOfBook) <= 4:
                 print("At least 200 books are required!")
             else:
                 print("Warning! you choose more than 200 books!")
@@ -132,7 +138,7 @@ def startScraping():
         while 1 > 0:
             print("Please enter the number of authors you want to scrape!")
             numOfAuthor = input('>')
-            if int(numOfAuthor) <= 20:
+            if int(numOfAuthor) <= 4:
                 print("At least 50 authors are required!")
             else:
                 print("Warning! you choose more than 50 authors!")
@@ -156,9 +162,9 @@ if __name__ == '__main__':
     # create table
     c.execute('''DROP TABLE Book''')
     c.execute('''CREATE TABLE Book(
+            book_id VARCHAR(99) NOT NULL PRIMARY KEY, 
             book_url VARCHAR(2083), 
             title VARCHAR(255),
-            book_id VARCHAR(99), 
             ISBN VARCHAR(13), 
             author_url VARCHAR(2083),
             author VARCHAR(255),
@@ -170,9 +176,9 @@ if __name__ == '__main__':
     )''')
     c.execute('''Drop TABLE Author''')
     c.execute('''CREATE TABLE Author(
+            author_Id VARCHAR(13) NOT NULL PRIMARY KEY,
             name VARCHAR(255),
             author_url VARCHAR(2083),
-            author_Id VARCHAR(13),
             rating VARCHAR(11),
             rating_count VARCHAR(11),
             review_count VARCHAR(11),

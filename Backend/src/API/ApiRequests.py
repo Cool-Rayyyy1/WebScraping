@@ -2,7 +2,9 @@ import json
 import flask
 import mysql.connector
 from flask import request, jsonify, Response
+
 import sys
+
 sys.path.insert(0, '../../')
 from src.WebScraper import BookParser, AuthorParser
 from src.API import queryParser
@@ -32,15 +34,26 @@ def home():
     return '''<h1>Four basic api calls</h1>
 <p>A prototype API for distant reading or writing to the mysql database</p>'''
 
+
 # This route will display all the books in current database
 @app.route('/api/books/all', methods=['GET'])
 def api_books_all():
-    return jsonBooks
+    c.execute('''SELECT * FROM book''')
+    allColumns = [col[0] for col in c.description]
+    allBooks = [dict(zip(allColumns, row)) for row in c.fetchall()]
+    jsonAllBooks = json.dumps(allBooks)
+    return jsonAllBooks
+
 
 # This route will display all the authors in current database
 @app.route('/api/authors/all', methods=['GET'])
 def api_authors_all():
-    return jsonAuthors
+    c.execute('''SELECT * FROM author''')
+    allColumns = [col[0] for col in c.description]
+    allAuthors = [dict(zip(allColumns, row)) for row in c.fetchall()]
+    jsonAllAuthors = json.dumps(allAuthors)
+    return jsonAllAuthors
+
 
 # This route will search one author in the database based on the authorId
 @app.route('/api/author', methods=['GET'])
@@ -50,12 +63,13 @@ def api_get_authorID():
         return "Error: No id field provided. Please specify an id."
     results = []
     for author in authors:
-        if author["author_id"] == inputId:
+        if author["author_Id"] == inputId:
             results.append(author)
     if len(results) == 0:
         return "Error: Can not find corresponding author！"
     else:
         return jsonify(results)
+
 
 # This route will search one book in the database based on the bookId
 @app.route('/api/book', methods=['GET'])
@@ -72,6 +86,7 @@ def api_get_bookID():
     else:
         return jsonify(results)
 
+
 # This route will search the book or author based the complex query
 @app.route('/api/search', methods=['GET'])
 def api_query_search():
@@ -86,6 +101,70 @@ def api_query_search():
 
     except Exception as e:
         return str(e)
+
+# A helper function for the top k api
+def takeSecond(elem):
+    return elem[1]
+
+# This route will search the top k rating book
+@app.route('/api/top/book', methods=['GET'])
+def api_top_bookId():
+    inputK = request.args.get('t')
+    if inputK is None:
+        return "Error: No top number provided. Please specify an number."
+    try:
+        sql = "SELECT book_id, rating FROM Book"
+        c.execute(sql)
+        conn.commit()
+        tempList = c.fetchall()
+        nonSortList = []
+        for data in tempList:
+            nonSortList.append((data[0], float(data[1])))
+        sortList = sorted(nonSortList, key=takeSecond, reverse=True)
+        finalList = []
+        for i in range(int(inputK)):
+            finalList.append(sortList[i])
+        returnList = []
+        for each in finalList:
+            searchSql = "SELECT * FROM Book WHERE book_id = %s"
+            target = (each[0],)
+            c.execute(searchSql, target)
+            searchResult = c.fetchall()
+            returnList.append(searchResult)
+        return jsonify(returnList)
+
+    except Exception as e:
+        return e
+
+# This route will search the top k rating author
+@app.route('/api/top/author', methods=['GET'])
+def api_top_authorId():
+    inputK = request.args.get('t')
+    if inputK is None:
+        return "Error: No top number provided. Please specify an number."
+    try:
+        sql = "SELECT author_Id, rating FROM Author"
+        c.execute(sql)
+        conn.commit()
+        tempList = c.fetchall()
+        nonSortList = []
+        for data in tempList:
+            nonSortList.append((data[0], float(data[1])))
+        sortList = sorted(nonSortList, key=takeSecond, reverse=True)
+        finalList = []
+        for i in range(int(inputK)):
+            finalList.append(sortList[i])
+        returnList = []
+        for each in finalList:
+            searchSql = "SELECT * FROM Author WHERE author_Id = %s"
+            target = (each[0],)
+            c.execute(searchSql, target)
+            searchResult = c.fetchall()
+            returnList.append(searchResult)
+        return jsonify(returnList)
+
+    except Exception as e:
+        return e
 
 # This route will change the information of the book based on the given bookId. You need to pass in a json in the postman.
 @app.route('/api/book', methods=['PUT'])
@@ -166,6 +245,7 @@ def api_put_books():
     except Exception as e:
         return str(e)
 
+
 # This route will change the information of the author based on the given authorId. You need to pass in a json by postman.
 @app.route('/api/author', methods=['PUT'])
 def api_put_authors():
@@ -227,6 +307,7 @@ def api_put_authors():
     except Exception as e:
         return str(e)
 
+
 # This route will add a new book in our database. You need to pass in a json format dic in postman.
 @app.route('/api/book', methods=['POST'])
 def api_post_book():
@@ -254,6 +335,7 @@ def api_post_book():
 
     except Exception as e:
         return str(e)
+
 
 # This route will add a list of books in our database. You need to pass in a json format list books in postman
 @app.route('/api/books', methods=['POST'])
@@ -283,6 +365,7 @@ def api_post_books():
     except Exception as e:
         return str(e)
 
+
 # This route will add a author in our database. You need to pass in a json format dic in postman
 @app.route('/api/author', methods=['POST'])
 def post_author():
@@ -290,7 +373,7 @@ def post_author():
         inputData = request.json
         if isinstance(inputData, list):
             return Response(response=json.dumps(dict(error="a single author is required")), status=415)
-        author_id = inputData["author_id"]
+        author_id = inputData["author_Id"]
         author_name = inputData["name"]
         author_url = inputData["author_url"]
         author_rating = inputData["rating"]
@@ -307,6 +390,7 @@ def post_author():
     except Exception as e:
         return str(e)
 
+
 # This route will add a list of authors in our database. You need to pass in a json format list in postman
 @app.route('/api/authors', methods=['POST'])
 def post_authors():
@@ -315,7 +399,7 @@ def post_authors():
         if not isinstance(inputData, list):
             return Response(response=json.dumps(dict(error="multiple authors are required")), status=415)
         for data in inputData:
-            author_id = data["author_id"]
+            author_id = data["author_Id"]
             author_name = data["name"]
             author_url = data["author_url"]
             author_rating = data["rating"]
@@ -332,6 +416,7 @@ def post_authors():
 
     except Exception as e:
         return str(e)
+
 
 # This route will scrape a url information and store the information in the database. You need you pass in a url after the route.
 @app.route('/api/scrape', methods=['POST'])
@@ -384,6 +469,7 @@ def post_scrape():
     except Exception as e:
         return str(e)
 
+
 # This route will delete a single book
 @app.route('/api/book', methods=['DELETE'])
 def delete_book():
@@ -396,7 +482,7 @@ def delete_book():
         c.execute(sql, target)
         row_count = c.rowcount
         if row_count == 0:
-            return Response(response=json.dumps(dict(error="No such book id is found therefore no deletion")),
+            return Response(response=json.dumps(dict(message="No such book id is found therefore no deletion")),
                             status=400)
         else:
             deleteSQL = "DELETE FROM Book WHERE book_id = %s"
@@ -405,6 +491,7 @@ def delete_book():
             return Response(response=json.dumps(dict(message="deleted")), status=200)
     except Exception as e:
         return str(e)
+
 
 # This method will delete a single author
 @app.route('/api/author', methods=['DELETE'])
@@ -418,7 +505,7 @@ def delete_author():
         c.execute(sql, target)
         row_count = c.rowcount
         if row_count == 0:
-            return Response(response=json.dumps(dict(error="No such author id is found therefore no deletion")),
+            return Response(response=json.dumps(dict(message="No such author id is found therefore no deletion")),
                             status=400)
         else:
             deleteSQL = "DELETE FROM Author WHERE author_Id = %s"

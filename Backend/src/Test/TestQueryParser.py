@@ -113,6 +113,7 @@ if __name__ == "__main__":
     # 16 < sign for book. No book rating is less 4.0
     query16 = queryParser.Query('book.rating:<4.0')
     result16 = query16.startParsing()
+    print(result16)
     assert result16 == dict(error="No such item exist!")
 
     # 17 < sign for book

@@ -508,6 +508,6 @@ class Query:
 
 
 if __name__ == "__main__":
-    lang = Query('book.review_count:"952"')
+    lang = Query('book.review_count:"950"')
     result = lang.startParsing()
     print(result)
